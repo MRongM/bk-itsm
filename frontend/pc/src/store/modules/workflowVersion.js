@@ -66,6 +66,20 @@ export default {
       });
     },
     // 获取版本流程
+    getVersionFlowByService({ commit, state, dispatch }, params) {
+      return ajax.get(`workflow/versions/get_flow_by_service/`, params).then((response) => {
+        const res = response.data;
+        return res;
+      });
+    },
+    // 获取版本流程内的字段
+    getFieldsByFlow({ commit, state, dispatch }, params) {
+      return ajax.get(`workflow/versions/get_flow_fields/`, params).then((response) => {
+        const res = response.data;
+        return res;
+      });
+    },
+    // 获取版本流程
     getVersionFlow({ commit, state, dispatch }, { id }) {
       return ajax.get(`workflow/versions/${id}/master/`).then((response) => {
         const res = response.data;

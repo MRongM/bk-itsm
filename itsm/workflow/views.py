@@ -895,7 +895,55 @@ class WorkflowVersionViewSet(
             source_type=SOURCE_TICKET, source_id=instance.id
         ).delete()
         super(WorkflowVersionViewSet, self).perform_destroy(instance)
+ 
+    @action(detail=False, methods=["get"])
+    def get_flow_by_service(self, request, *args, **kwargs):
+        """
+        查询流程版本
+        """
+        service_id = request.query_params.get("service_id")
+        if not service_id:
+            raise ValueError("需要service_id")
+        service = Service.objects.get(pk=service_id)
+        workflow_id = service.workflow.workflow_id
+        queryset = self.queryset.objects.filter(workflow_id=workflow_id)
+        data = [{
+            'id': item.id, 
+            'version_number': item.version_number, 
+            'name': item.name, 
+            }
+            for item in queryset]
+        return Response(data)
 
+    @action(detail=False, methods=["get"])
+    def get_flow_fields(self, request, *args, **kwargs):
+        """
+        获取提单节点字段
+        """
+        flow_version_id = request.query_params.get("flow_version_id", None)
+        if not flow_version_id:
+            raise ValidationError(_("请输入flow_version_id"))
+
+        workflow = self.queryset.filter(pk=flow_version_id)
+        # 获取对应的流程版本
+        workflow_fields = workflow.fields
+
+        fields = []
+        for field_id, field_item in workflow_fields.items():
+            if field_item is None:
+                continue
+
+            field = copy.deepcopy(field_item)
+            default = field.get("default")
+            value = field.get("value")
+            field.update(
+                version_id=flow_version_id,
+                value=default if value is None else value,
+            )
+            fields.append(field)
+
+        return Response(fields)
+    
     @action(detail=True, methods=["get"])
     def states(self, request, *args, **kwargs):
         """

@@ -91,6 +91,18 @@
             :name="option.name">
           </bk-option>
         </bk-select>
+        <bk-select
+          v-model="exportInfo.flowId"
+          ext-cls="export-service-select"
+          searchable
+          :loading="flowListLoading"
+          @change="onFlowChange">
+          <bk-option v-for="option in exportInfo.flowList"
+            :key="option.id"
+            :id="option.id"
+            :name="option.display_name">
+          </bk-option>
+        </bk-select>
       </p>
     </div>
     <div slot="footer">
@@ -136,10 +148,11 @@
     data() {
       return {
         serviceListLoading: false,
+        flowListLoading: false,
         // 导出
         exportInfo: {
           serviceFieldLoading: false,
-          width: 700,
+          width: 800,
           headerPosition: 'left',
           allCheck: false,
           checkList: [],
@@ -147,6 +160,10 @@
           serviceFieldsList: [],
           serviceList: [],
           serviceId: '',
+          flowFieldLoading: false,
+          flowId: '',
+          flowList: [],
+          flowFieldsList: [],
         },
       };
     },
@@ -302,28 +319,65 @@
         this.exportInfo.checkList = [];
         this.exportInfo.allCheck = false;
       },
+      /* eslint-disable */
       getServiceFieldList(serviceId) {
         this.exportInfo.serviceFieldLoading = true;
         const params = {
           service_id: serviceId,
         };
         return this.$store.dispatch('change/getSubmitFields', params).then(async (res) => {
-          const disabledTypes = ['TABLE', 'CUSTOMTABLE', 'FILE']; // 不能导出的字段
-          this.exportInfo.serviceFieldsList = res.data.map(field => ({
-            id: field.key,
-            name: field.name,
-            disabled: disabledTypes.includes(field.type),
-          }));
-        })
+            const disabledTypes = ['TABLE', 'CUSTOMTABLE', 'FILE']; // 不能导出的字段
+            this.exportInfo.serviceFieldsList = res.data.map(field => ({
+              id: field.key,
+              name: field.name,
+              disabled: disabledTypes.includes(field.type),
+            }));
+          })
           .catch((res) => {
-            errorHandler(res, this);
+            errorHandler(res, this); 
           })
           .finally(() => {
             this.exportInfo.serviceFieldLoading = false;
           });
       },
-      onServiceChange(id) {
-        this.getServiceFieldList(id);
+      /* eslint-disable */
+      onServiceChange(service_id) {
+        const params = {
+          service_id: service_id,
+        };
+        this.$store.dispatch('workflowVersion/getVersionFlowByService', params).then((res) => {
+          this.exportInfo.flowList = res.data.map(field => ({
+          id: field.id,
+          name: field.name,
+          version_number: field.version_number,
+          display_name: field.name + '(' + field.version_number + ')',
+          }));
+        })
+        .catch((res) => {
+          errorHandler(res, this);
+        });
+        // this.getServiceFieldList(id);
+      },
+      /* eslint-disable */
+      onFlowChange(flow_version_id) {
+        this.exportInfo.flowFieldLoading = true;
+        const params = {
+          flow_version_id: flow_version_id,
+        };
+        return this.$store.dispatch('workflowVersion/getFieldsByFlow', params).then(async (res) => {
+          const disabledTypes = ['TABLE', 'CUSTOMTABLE', 'FILE']; // 不能导出的字段
+          this.exportInfo.flowFieldsList = res.data.map(field => ({
+              id: field.key,
+              name: field.name,
+              disabled: disabledTypes.includes(field.type),
+            }));
+        })
+          .catch((res) => {
+            errorHandler(res, this); 
+          })
+          .finally(() => {
+            this.exportInfo.flowFieldLoading = false;
+          });
       },
     },
   };

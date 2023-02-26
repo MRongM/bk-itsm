@@ -409,6 +409,8 @@ class TicketModelViewSet(ModelViewSet):
             fields.append(field)
 
         return Response(fields)
+    
+
 
     @action(detail=False, methods=["post"])
     def api_field_choices(self, request):
@@ -670,6 +672,93 @@ class TicketModelViewSet(ModelViewSet):
                 ticket_values[field_name] = field["display_value"]
 
         # 构造xls并返回
+        return self.generate_csv(head_fields, ticket_values_list)
+
+    @action(detail=False, methods=["get"])
+    def export_fields_by_flow(self, request, *args, **kwargs):
+        from itsm.ticket.serializers import FieldExportSerializer
+        
+        # 单据的公共字段设置内容
+        flowversion_id = request.query_params.get("flow_id")
+        if not flowversion_id:
+            raise ValidationError(_("请选择需要导出的流程版本"))
+        
+        # 单据的公共字段设置内容
+        export_fields = request.query_params.get("export_fields")
+        if not export_fields:
+            raise ValidationError(_("请选择需要导出的字段"))
+
+        export_fields = export_fields.split(",")
+
+        fields = copy.deepcopy(EXPORT_FIELDS)
+        head_fields = [field for field in fields if field["id"] in export_fields]
+
+        queryset = self.custom_filter_queryset(request)
+
+        # 这里建议用base64编码
+
+        service_fields = request.query_params.get("service_fields")
+        try:
+            service_fields = (
+                json.loads(base64.b64decode(service_fields)) if service_fields else {}
+            )
+        except BaseException:
+            raise ValidationError(_("解析导出的提单字段异常：请检查请求参数内容，提单字段需要通过base64编码。"))
+
+        # 获取字段的展示title，先将所有的字段混合起来
+        all_service_field_keys = []
+        for service_fields_key in service_fields.values():
+            all_service_field_keys.extend(service_fields_key)
+
+        def get_service_ticket_fields():
+            """根据用户制定的字段获取提单内容"""
+            if not service_fields:
+                return []
+
+            # started_states = [
+            #     service_inst.first_state_id
+            #     for service_inst in Service.objects.filter(id__in=service_fields.keys())
+            # ]
+
+            # 获取导出的所有字段内容 -- 当前的id如果较多，这里大量拉取，估计有点问题
+            all_service_field_keys.append("bk_biz_id")
+            return FieldExportSerializer(
+                TicketField.objects.filter(
+                    ticket_id__in=queryset.filter(
+                        service_id__in=service_fields.keys()
+                    ).values_list("id", flat=True),
+                    type__in=EXPORT_SUPPORTED_TYPE,
+                    # state_id__in=started_states,
+                    key__in=all_service_field_keys,
+                ),
+                many=True,
+            ).data
+
+        ticket_fields = get_service_ticket_fields()
+        # 按照ticket_id分组
+        ticket_relate_fields = group_by(ticket_fields, ["ticket_id"], dict_result=True)
+
+        field_filter_conditions = set(
+            [
+                field_obj["name"]
+                for field_obj in ticket_fields
+                if field_obj["key"] in all_service_field_keys
+            ]
+        )
+
+        relate_head_fields = [
+            {"id": item, "name": item} for item in field_filter_conditions
+        ]
+        head_fields.extend(sorted(relate_head_fields, key=lambda x: x.get("name")))
+
+        ticket_values_list = TicketExportSerializer(queryset, many=True).data
+
+        for ticket_values in ticket_values_list:
+            fields = ticket_relate_fields.get(ticket_values["id"], [])
+            for field in fields:
+                ticket_values[field["name"]] = field["display_value"]
+
+        # 构造csv并返回
         return self.generate_csv(head_fields, ticket_values_list)
 
     @action(detail=False, methods=["get"])
