@@ -94,6 +94,8 @@ from itsm.workflow.models import (
 )
 from itsm.workflow.validators import WorkflowPipelineValidator
 
+from common.log import logger
+
 
 class FavoriteModelViewSet(component_viewsets.ModelViewSet):
     """用户收藏视图"""
@@ -243,8 +245,9 @@ class CatalogServiceViewSet(component_viewsets.ModelViewSet):
         catalog_id = request.query_params.get("catalog_id")
         name = request.query_params.get("name")
         service_key = request.query_params.get("service_key")
+        service_id = request.query_params.get("service_id")
         is_valid = request.query_params.get("is_valid")
-
+        logger.debug(f"get_services >>>>, service_id:{service_id}")
         if not catalog_id:
             raise ParamError("请提供合法的目录ID！")
 
@@ -260,6 +263,10 @@ class CatalogServiceViewSet(component_viewsets.ModelViewSet):
             query_params.update({"is_valid": is_valid})
         services = Service.objects.filter(**query_params).order_by("-update_at")
 
+        # 支持额外过滤选项
+        if service_id:
+            services = services.filter(pk=service_id)
+            
         # 支持额外过滤选项
         if name:
             services = services.filter(name__icontains=name)

@@ -57,7 +57,9 @@ def transform_single_username(username, user_dict=None):
     -> 'aaa'->'张三'
     单用户的用户名转换
     """
-
+    if getattr(settings, 'LOCAL_ADMIN_USER', '') == "admin":
+        return 'admin(超级管理员)'
+    
     if not username:
         return ""
 

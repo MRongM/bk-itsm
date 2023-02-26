@@ -286,9 +286,11 @@ def _wrap_data_handler(sdk_method):
         if "get_batch_users" in sdk_method.url:
             logger.info("get_batch_users is execute, args={}, kwargs={}, response={}"
                         .format(args, kwargs, response))
-
+            
+        logger.info("sdk_method.url is execute, args={}, kwargs={}, response={}"
+                    .format(args, kwargs, response))
         if not response['result'] and not __ignore_err:
-            if response['code'] == API_PERMISSION_ERROR_CODE:
+            if isinstance(response, dict) and response.get('code') == API_PERMISSION_ERROR_CODE:
                 """接口返回无权限的时候，直接抛出权限不够"""
                 raise IamPermissionDenied(data=response.get("permission", []))
             raise ComponentCallError(response)

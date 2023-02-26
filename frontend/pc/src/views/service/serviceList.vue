@@ -766,6 +766,7 @@
           project_key: this.$store.state.project.id,
           ordering: '-update_at',
           catalog_id: this.$route.query.catalog_id || this.treeInfo.node.id,
+          service_id: this.$route.query.service_id || '',
         };
         this.moreSearch.forEach(item => {
           if (item.value !== '' && item.typeKey) {

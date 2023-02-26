@@ -43,7 +43,8 @@ def add_common_actions(apps, schema_editor):
     iam_host = settings.BK_IAM_INNER_HOST
     app_code = settings.APP_CODE
     app_secret = settings.SECRET_KEY
-
+    if not iam_host:
+        return 
     json_path = getattr(settings, "BK_IAM_MIGRATION_JSON_PATH", "support-files/iam/")
     file_path = os.path.join(settings.BASE_DIR, json_path, "initial_common_actions.json")
 

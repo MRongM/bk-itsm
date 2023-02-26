@@ -17,4 +17,11 @@ def healthz(request):
 @require_GET
 @login_exempt
 def ping(request):
+    print("ping>>>>", request.user.username)
     return JsonResponse({"result": True, "data": None, "message": "pong"})
+
+@require_GET
+def login_ping(request):
+    
+    print("login_ping>>>>", request.user.username)
+    return JsonResponse({"result": True, "data": None, "message": "login_pong"})

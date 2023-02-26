@@ -411,7 +411,8 @@
         // 判断服务是否存在
         this.$store.dispatch('service/getServiceDetail', this.ticketInfo.service_id).then(res => {
           if (res.result) {
-            const routeData = this.$router.resolve({ path: '/project/service/edit/basic', query: { project_id: this.$store.state.project.id, serviceId: this.ticketInfo.service_id } });
+            // const routeData = this.$router.resolve({ path: '/project/service/edit/basic', query: { project_id: this.$store.state.project.id, serviceId: this.ticketInfo.service_id } });
+            const routeData = this.$router.resolve({ path: '/project/service/list', query: { project_id: this.$store.state.project.id, service_id: this.ticketInfo.service_id } });
             window.open(routeData.href, '_blank');
           }
         });
