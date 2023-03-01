@@ -22,6 +22,8 @@ NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
+import copy
+
 import six
 
 import jsonfield
@@ -874,3 +876,29 @@ class WorkflowVersion(WorkflowBase):
             raise ValidationError(
                 _("流程版本中缺少【{}】信息，请补充完整后再进行服务协议的关联").format(",".join(field_desc))
             )
+
+    def history_fields(self):
+        workflows = WorkflowVersion.objects.filter(workflow_id=self.workflow_id)
+        fields = []
+
+        field_ids = []
+        for workflow in workflows:
+            workflow_fields = workflow.fields
+            for field_id, field_item in workflow_fields.items():
+                if field_item is None:
+                    continue
+                    
+                if field_id in field_ids:
+                    continue
+
+                field = copy.deepcopy(field_item)
+                default = field.get("default")
+                value = field.get("value")
+                field.update(
+                    value=default if value is None else value,
+                )
+                fields.append(field)
+                field_ids.append(field_id)
+
+        return fields
+    

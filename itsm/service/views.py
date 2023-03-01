@@ -680,6 +680,16 @@ class ServiceViewSet(component_viewsets.AuthModelViewSet):
             self.serializer_class(service, context=self.get_serializer_context()).data
         )
 
+    @action(detail=True, methods=["get"])
+    def get_all_fields(self, request, *args, **kwargs):
+        """
+        获取节点字段
+        """
+        logger.debug(f"get_all_fields >>>>")
+        service = self.get_object()
+        fields = service.workflow.history_fields()
+        return Response(fields)
+
 
 class SysDictViewSet(DynamicListModelMixin, component_viewsets.ModelViewSet):
     """数据字典视图集合"""

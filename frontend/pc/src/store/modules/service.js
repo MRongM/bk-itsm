@@ -150,5 +150,9 @@ export default {
     slaValidate({ commit }, id) {
       return ajax.post(`service/projects/${id}/sla_validate/`).then((response) => response.data);
     },
+    // 获取历史字段
+    getHistroyFields({ commit }, id) {
+      return ajax.get(`service/projects/${id}/get_all_fields/`).then((response) => response.data);
+    },
   },
 };

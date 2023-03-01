@@ -69,64 +69,69 @@
           form-type="vertical"
           ref="dynamicForm">
           <template>
-            <div class="bk-filter-line"
-              v-for="(item, index) in searchForms"
+            <div class="bk-filter-line" v-for="(item, index) in searchForms"
               :key="index">
-              <bk-form-item :label="item.name" v-if="item.type === 'input'">
-                <bk-input v-model="item.value"
-                  :placeholder="item.placeholder"
-                  @change="onFormChange($event, item)">
-                </bk-input>
-              </bk-form-item>
-              <bk-form-item :label="item.name" v-if="item.type === 'select'">
-                <bk-select
-                  searchable
-                  :placeholder="item.placeholder"
-                  :show-select-all="item.multiSelect"
-                  :multiple="item.multiSelect"
-                  v-model="item.value"
-                  @change="onFormChange($event, item)">
-                  <bk-option v-for="option in item.list"
-                    :key="option.key"
-                    :id="option.key"
-                    :name="option.name">
-                  </bk-option>
-                </bk-select>
-              </bk-form-item>
-              <bk-form-item :label="item.name" v-if="item.type === 'datetime'">
-                <bk-date-picker
-                  style="width: 100%;"
-                  v-model="item.value"
-                  :placeholder="item.placeholder"
-                  :type="'datetimerange'"
-                  @change="onFormChange($event, item)">
-                </bk-date-picker>
-              </bk-form-item>
-              <!-- 级联类型 -->
-              <bk-form-item :label="item.name" v-if="item.type === 'cascade'">
-                <bk-cascade
-                  style="width: 100%;"
-                  v-model="item.value"
-                  :list="item.list"
-                  :check-any-level="true"
-                  clearable
-                  @change="onFormChange($event, item)"
-                  :ext-popover-cls="'custom-cls'">
-                </bk-cascade>
-              </bk-form-item>
-              <!-- 人员 -->
-              <bk-form-item :label="item.name" v-if="item.type === 'member'">
-                <member-select
-                  v-model="item.value"
-                  :multiple="false"
-                  :placeholder="item.placeholder"
-                  @change="onFormChange($event, item)"></member-select>
-              </bk-form-item>
+                <bk-form-item :label="item.name" v-if="item.type === 'input'">
+                  <bk-input v-model="item.value"
+                    :placeholder="item.placeholder"
+                    @change="onFormChange($event, item)">
+                  </bk-input>
+                </bk-form-item>
+                <bk-form-item :label="item.name" v-if="item.type === 'select'">
+                  <bk-select
+                    searchable
+                    :placeholder="item.placeholder"
+                    :show-select-all="item.multiSelect"
+                    :multiple="item.multiSelect"
+                    v-model="item.value"
+                    @change="onFormChange($event, item)">
+                    <bk-option v-for="option in item.list"
+                      :key="option.key"
+                      :id="option.key"
+                      :name="option.name">
+                    </bk-option>
+                  </bk-select>
+                </bk-form-item>
+                <bk-form-item :label="item.name" v-if="item.type === 'datetime'">
+                  <bk-date-picker
+                    style="width: 100%;"
+                    v-model="item.value"
+                    :placeholder="item.placeholder"
+                    :type="'datetimerange'"
+                    @change="onFormChange($event, item)">
+                  </bk-date-picker>
+                </bk-form-item>
+                <!-- 级联类型 -->
+                <bk-form-item :label="item.name" v-if="item.type === 'cascade'">
+                  <bk-cascade
+                    style="width: 100%;"
+                    v-model="item.value"
+                    :list="item.list"
+                    :check-any-level="true"
+                    clearable
+                    @change="onFormChange($event, item)"
+                    :ext-popover-cls="'custom-cls'">
+                  </bk-cascade>
+                </bk-form-item>
+                <!-- 人员 -->
+                <bk-form-item :label="item.name" v-if="item.type === 'member'">
+                  <member-select
+                    v-model="item.value"
+                    :multiple="false"
+                    :placeholder="item.placeholder"
+                    @change="onFormChange($event, item)"></member-select>
+                </bk-form-item>
             </div>
           </template>
         </bk-form>
         <!-- 查询清空 -->
         <div class="bk-filter-btn">
+          <bk-button theme="primary"
+            data-test-id="highlight_button_search"
+            :title="$t(`m.deployPage['增加']`)"
+            @click="onIncreaceClick">
+            {{ $t('m.deployPage["增加"]') }}
+          </bk-button>
           <bk-button theme="primary"
             data-test-id="highlight_button_search"
             :title="$t(`m.deployPage['查询']`)"
@@ -228,6 +233,7 @@
     },
     data() {
       return {
+        dynamicForms:[],
         projectList: [],
         projectLoading: false,
         isHighlightSetting: false,
@@ -378,6 +384,13 @@
           }
         }
         return params;
+      },
+      onIncreaceClick() {
+        this.searchForms.splice(0,0,
+          {name: 'name1', value:'jojo1', placeholder:'请输入名称'},
+          {name: 'name2', value:'jojo2', placeholder:'请输入名称'},
+          {name: 'name3', value:'jojo3', placeholder:'请输入名称'},
+        )
       },
       onSearchClick() {
         this.$emit('search', this.getParams(), true);
